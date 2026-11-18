@@ -1,0 +1,1101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Selection Structures Tutorial</title>
+<style>
+:root{
+  --navy:#005596; --navy-d:#1B2A41; --gold:#FDB515; --gold-l:#FFF5D6; --crimson:#C3092B;
+  --green:#1E8E3E; --green-l:#E6F4EA; --red-l:#FDECEE; --blue-l:#EEF5FA; --blue-m:#DCE8F5;
+  --ink:#1d2530; --muted:#5b6675; --line:#d5dde6; --bg:#f6f8fb; --card:#ffffff;
+  --code-bg:#fbfcfe; --hl:#FFF0A8; --mono:Consolas,"Cascadia Mono","DejaVu Sans Mono",Menlo,monospace;
+}
+*{box-sizing:border-box}
+html{font-size:17px}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"Segoe UI",Arial,system-ui,sans-serif;line-height:1.45}
+button{font:inherit;cursor:pointer}
+code,.mono{font-family:var(--mono)}
+code{background:var(--blue-l);padding:0 .25em;border-radius:4px;font-size:.92em}
+
+/* ---------- top bar ---------- */
+#top{position:sticky;top:0;z-index:50;background:var(--navy-d);color:#fff;display:flex;align-items:center;gap:.6rem;padding:.35rem .8rem;flex-wrap:wrap}
+#top .brand{font-weight:700;white-space:nowrap}
+#top .brand span{color:var(--gold)}
+#nav{display:flex;gap:.25rem;flex-wrap:wrap;flex:1}
+#nav button{background:transparent;color:#cfe0f5;border:1px solid #3d5373;border-radius:999px;padding:.12rem .55rem;font-size:.78rem;white-space:nowrap}
+#nav button.on{background:var(--gold);color:var(--navy-d);border-color:var(--gold);font-weight:700}
+#nav button.done::after{content:" ✓";color:#7ee08f}
+#nav button.on.done::after{color:var(--green)}
+.tb{display:flex;gap:.3rem;align-items:center;flex-wrap:wrap}
+.tb button{background:#2c3e5a;color:#fff;border:1px solid #4a6286;border-radius:6px;padding:.15rem .5rem;font-size:.8rem}
+.tb button.on{background:var(--gold);color:var(--navy-d);border-color:var(--gold);font-weight:700}
+.tb .lbl{font-size:.72rem;color:#cfe0f5;text-transform:uppercase;letter-spacing:.05em}
+#progress{height:4px;background:#3d5373}
+#progress i{display:block;height:100%;background:var(--gold);width:0;transition:width .3s}
+
+/* ---------- blocks ---------- */
+main{max-width:1240px;margin:0 auto;padding:1rem 1rem 7rem}
+body.guide-open main{padding-bottom:60vh}
+section.block{display:none}
+section.block.active{display:block;animation:fade .25s}
+@keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1}}
+.bhead h1{margin:.2rem 0 0;font-size:1.9rem;color:var(--navy);line-height:1.15}
+.chip{display:inline-block;background:var(--navy);color:#fff;border-radius:999px;padding:.1rem .65rem;font-size:.8rem;font-weight:600}
+.chip.gold{background:var(--gold);color:var(--navy-d)}
+.kicker{color:var(--muted);margin:.3rem 0 .8rem;font-size:1.05rem}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:.8rem}
+.grid2>*,.grid3>*{min-width:0}
+@media (max-width:900px){.grid2,.grid3{grid-template-columns:1fr}}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:.9rem 1.1rem;margin-bottom:1rem}
+.card h2{margin:.1rem 0 .5rem;font-size:1.25rem;color:var(--navy)}
+.card h3{margin:.6rem 0 .3rem;font-size:1.05rem}
+.card p{margin:.35rem 0}
+.analogy{background:var(--gold-l);border:1px solid #f1d88a;border-left:6px solid var(--gold);border-radius:10px;padding:.7rem 1rem;margin:.6rem 0}
+.analogy b.t{display:block;color:#7a5600;font-size:.8rem;text-transform:uppercase;letter-spacing:.05em}
+.key{background:var(--blue-l);border-left:6px solid var(--navy);border-radius:10px;padding:.6rem 1rem;margin:.6rem 0}
+.warn{background:var(--red-l);border-left:6px solid var(--crimson);border-radius:10px;padding:.55rem .9rem;margin:.6rem 0}
+.task{border:2px solid var(--green);background:linear-gradient(#fff,#fbfffc)}
+.task h2{color:var(--green)}
+.task h2::before{content:"💻 "}
+.challenge{border:2px dashed var(--crimson)}
+.challenge h2{color:var(--crimson)}
+.challenge h2::before{content:"🎯 "}
+.btn{background:var(--navy);color:#fff;border:0;border-radius:8px;padding:.35rem .8rem;font-size:.9rem;margin:.15rem .2rem .15rem 0}
+.btn:hover{filter:brightness(1.12)}
+.btn.alt{background:#fff;color:var(--navy);border:1px solid var(--navy)}
+.btn.green{background:var(--green)}
+.btn.red{background:var(--crimson)}
+.btn:disabled{opacity:.4;cursor:not-allowed;filter:none}
+.hidden{display:none!important}
+.reveal-box{background:var(--green-l);border:1px solid #a8d5b5;border-radius:10px;padding:.6rem 1rem;margin:.5rem 0}
+.small{font-size:.86rem;color:var(--muted)}
+.panel-t{font-size:.75rem;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-top:.5rem}
+table.keys{border-collapse:collapse;width:100%;font-size:.92rem}
+table.keys td,table.keys th{border-bottom:1px solid var(--line);padding:.25rem .4rem;text-align:left;vertical-align:middle}
+table.keys th{color:var(--muted);font-size:.78rem;text-transform:uppercase}
+.loop4{display:flex;gap:.5rem;flex-wrap:wrap;margin:.5rem 0}
+.loop4 div{flex:1;min-width:9rem;background:var(--blue-l);border-radius:10px;padding:.45rem .6rem;text-align:center;font-size:.9rem}
+.loop4 div b{display:block;font-size:1.05rem;color:var(--navy)}
+.loop4 div.star{background:var(--gold-l);outline:2px solid var(--gold)}
+
+/* ---------- code ---------- */
+.code{font-family:var(--mono);font-size:.9rem;background:var(--code-bg);border:1px solid var(--line);border-radius:10px;overflow:auto;padding:.4rem 0;margin:.3rem 0}
+.code .ln{display:flex;min-height:1.45em;white-space:pre}
+.code .gut{flex:0 0 2.8em;text-align:right;padding-right:.7em;color:#8a96a5;user-select:none;position:relative}
+.code .src{flex:1;padding-right:1em}
+.code .ln.cur{background:var(--hl)}
+.code .ln.cur .gut{color:var(--ink);font-weight:700}
+.code .ln.cur .gut::before{content:"▶";position:absolute;left:.25em;color:#c47f00}
+.code .ln.pick{cursor:pointer}
+.code .ln.pick:hover{background:var(--blue-l)}
+.code .ln.wrong{background:var(--red-l)}
+.code .ln.right{background:var(--green-l)}
+.k{color:#0033b3;font-weight:600}.s{color:#067d17}.n{color:#1750eb}
+.shell{font-family:var(--mono);font-size:.9rem;background:var(--navy-d);color:#e9f0f8;border-radius:10px;padding:.45rem .8rem;min-height:2.6em;white-space:pre-wrap;margin:.3rem 0}
+.shell:empty::before{content:"(no output yet)";color:#8fa3bb}
+
+/* ---------- simulator ---------- */
+.sim{border:2px solid var(--navy);border-radius:14px;background:#fff;padding:.6rem .8rem;margin:.6rem 0}
+.sim .bar{display:flex;flex-wrap:wrap;gap:.4rem .9rem;align-items:center;border-bottom:1px solid var(--line);padding-bottom:.5rem}
+.sim .bar .grp{display:flex;align-items:center;gap:.35rem;flex-wrap:wrap}
+.sim .bar label{font-weight:600;font-size:.9rem}
+.sim .bar output{font-family:var(--mono);font-weight:700;color:var(--navy);min-width:3.2em;display:inline-block}
+.sim input[type=range]{width:9rem;accent-color:var(--navy)}
+.sim .ctl{margin-left:auto;display:flex;gap:.3rem}
+.sim .ctl button,.sim .chipbtn{border:1px solid #b9c4d0;background:#f4f7fa;border-radius:8px;padding:.25rem .6rem;font-size:.88rem}
+.sim .ctl button:not(:disabled):hover,.sim .chipbtn:hover{background:var(--blue-m)}
+.sim .ctl button:disabled{opacity:.35;cursor:not-allowed}
+.sim .ctl button.go{background:var(--green);color:#fff;border-color:var(--green);font-weight:700}
+.sim .chipbtn.sel{background:var(--navy);color:#fff;border-color:var(--navy);font-weight:700}
+.sim .body{display:grid;grid-template-columns:1.05fr 1fr;gap:.9rem;margin-top:.5rem}
+.sim .body>*{min-width:0}
+@media (max-width:900px){.sim .body{grid-template-columns:1fr}}
+.sim .status{font-size:.95rem;padding:.4rem .7rem;border-radius:8px;background:var(--blue-l);margin:.5rem 0 0;min-height:2.4em}
+.sim .status.run{background:var(--hl)}
+.sim .status.end{background:var(--green-l)}
+.sim .pred{font-size:.9rem;margin-top:.45rem;display:flex;gap:.35rem;align-items:center;flex-wrap:wrap}
+.sim .pred .fb{font-weight:700}
+.sim .pred .fb.ok{color:var(--green)}.sim .pred .fb.bad{color:var(--crimson)}
+b.T{color:var(--green)} b.F{color:var(--crimson)}
+table.vars{width:100%;border-collapse:collapse;font-size:.9rem;font-family:var(--mono)}
+table.vars th{text-align:left;font-family:"Segoe UI",Arial,sans-serif;font-size:.72rem;color:var(--muted);border-bottom:1px solid var(--line);padding:.15rem .4rem}
+table.vars td{border-bottom:1px solid #eef1f5;padding:.15rem .4rem}
+table.vars td:first-child{color:#0033b3}
+table.vars tr.chg td{animation:flash 1.2s}
+@keyframes flash{0%,40%{background:var(--gold)}100%{background:transparent}}
+
+/* flowchart */
+svg.flow{width:100%;height:auto;max-height:34rem;display:block}
+svg.flow .node .shape{fill:#fff;stroke:var(--navy);stroke-width:2;transition:fill .25s,stroke .25s}
+svg.flow .node.dec .shape{fill:#fffdf3}
+svg.flow .node text{font-family:var(--mono);font-size:12.5px;fill:var(--ink);text-anchor:middle;dominant-baseline:central}
+svg.flow .node.term text{font-family:"Segoe UI",Arial,sans-serif;font-weight:700;font-size:13.5px}
+svg.flow .node.seen .shape{fill:var(--blue-m)}
+svg.flow .node.on .shape{fill:var(--gold-l);stroke:#c47f00;stroke-width:3.5}
+svg.flow .edge{fill:none;stroke:#7d8da0;stroke-width:2;marker-end:url(#ah);transition:stroke .2s}
+svg.flow .edge.hot{stroke:#e09a00;stroke-width:4;marker-end:url(#ahHot)}
+svg.flow .elab{font-size:12.5px;font-weight:700;fill:var(--muted);paint-order:stroke;stroke:#fff;stroke-width:4px}
+svg.flow .elab.t{fill:var(--green)} svg.flow .elab.f{fill:var(--crimson)}
+svg.flow .tok{fill:var(--gold);stroke:var(--navy-d);stroke-width:2.5;filter:drop-shadow(0 0 5px rgba(253,181,21,.9))}
+
+/* case viz */
+.casebox{border:1px solid var(--line);border-radius:12px;padding:.6rem;background:var(--code-bg)}
+.cval{text-align:center;font-family:var(--mono);font-size:1.3rem;background:var(--navy-d);color:#fff;border-radius:10px;padding:.3rem;margin-bottom:.5rem}
+.cval b{color:var(--gold);font-size:1.6rem}
+.crow{display:flex;align-items:center;gap:.6rem;border:2px solid var(--line);border-radius:10px;background:#fff;padding:.35rem .6rem;margin:.3rem 0;transition:transform .25s,opacity .3s,background .3s,border-color .3s}
+.crow .clab{font-family:var(--mono);font-weight:800;background:var(--navy);color:#fff;border-radius:6px;min-width:2.2em;text-align:center;padding:0 .3em}
+.crow .cname{flex:1}
+.crow .cprice{font-family:var(--mono);font-size:.88rem;color:var(--muted)}
+.crow .cmark{width:1.4em;text-align:center;font-weight:800}
+.crow.chk{border-color:var(--gold);background:var(--gold-l);transform:translateX(10px)}
+.crow.no{opacity:.45}
+.crow.no .cmark::before{content:"✗";color:var(--crimson)}
+.crow.yes{border-color:var(--green);background:var(--green-l);transform:scale(1.03)}
+.crow.yes .cmark::before{content:"✓";color:var(--green)}
+.crow.skip{opacity:.3}
+
+/* condition tester */
+.cond{font-family:var(--mono);font-size:1.6rem;text-align:center;margin:.5rem 0}
+.cond .v{color:var(--navy);font-weight:700}
+.pillTF{display:inline-block;font-weight:800;border-radius:999px;padding:.05rem .9rem;margin-left:.6rem;transition:background .2s,color .2s;font-family:"Segoe UI",Arial,sans-serif}
+.pillTF.T{background:var(--green);color:#fff}.pillTF.F{background:var(--crimson);color:#fff}
+.ops{display:flex;gap:.3rem;flex-wrap:wrap;justify-content:center}
+.ops button{font-family:var(--mono);font-size:1.05rem;min-width:3rem;border:1px solid #9fb0c2;background:#fff;border-radius:8px;padding:.15rem .5rem}
+.ops button.sel{background:var(--navy);color:#fff;border-color:var(--navy)}
+.nline{position:relative;height:3.4rem;margin:1rem 1rem .4rem}
+.nline .track{position:absolute;left:0;right:0;top:1.1rem;height:.7rem;background:#e3e8ee;border-radius:999px;overflow:hidden}
+.nline .zone{position:absolute;top:0;bottom:0;background:var(--green);opacity:0;transition:opacity .25s}
+.nline .zone.on{opacity:.75}
+.nline .zl{left:0;width:50%}.nline .zr{left:50%;width:50%}
+.nline .pt{position:absolute;left:50%;top:.75rem;width:1.4rem;height:1.4rem;margin-left:-.7rem;border-radius:50%;border:3px solid var(--navy-d);background:#fff;transition:background .25s}
+.nline .pt.on{background:var(--green)}
+.nline .mk{position:absolute;top:-.35rem;margin-left:-.75rem;font-size:1.5rem;transition:left .15s linear}
+.nline .tick{position:absolute;top:2.3rem;font-size:.78rem;color:var(--muted);transform:translateX(-50%);font-family:var(--mono)}
+
+/* sort game */
+.sortcard{border:1px solid var(--line);border-radius:10px;padding:.55rem .7rem;background:#fff}
+.sortcard pre{margin:.2rem 0 .4rem;font-family:var(--mono);font-size:.95rem;background:var(--code-bg);border-radius:6px;padding:.3rem .5rem;white-space:pre-wrap}
+.sortcard .why{font-size:.85rem;margin-top:.3rem}
+.sortcard.ok{border-color:var(--green);background:var(--green-l)}
+.sortcard.bad{border-color:var(--crimson);background:var(--red-l)}
+.sortcard button{font-size:.8rem;border:1px solid #9fb0c2;background:#fff;border-radius:6px;padding:.1rem .45rem;margin-right:.2rem}
+.sortcard button.sel{background:var(--navy);color:#fff;border-color:var(--navy);font-weight:700}
+
+/* parsons */
+.pline{display:flex;align-items:center;gap:.3rem;border:1px solid var(--line);border-radius:8px;padding:.15rem .35rem;margin:.2rem 0;background:#fff;transition:background .3s}
+.pline pre{flex:1;margin:0;font-family:var(--mono);font-size:.9rem;white-space:pre}
+.pline button{border:1px solid #b9c4d0;background:#f4f7fa;border-radius:6px;padding:0 .45rem;font-size:.85rem}
+.pline.ok{border-color:var(--green);background:var(--green-l)}
+.pline.bad{border-color:var(--crimson);background:var(--red-l)}
+
+/* logic lab */
+.switches{display:flex;gap:1rem;flex-wrap:wrap;margin:.5rem 0}
+.sw{display:flex;align-items:center;gap:.5rem;border:1px solid var(--line);border-radius:10px;padding:.35rem .6rem;background:#fff}
+.sw button{position:relative;width:3.2rem;height:1.6rem;border-radius:999px;border:0;background:#b9c4d0;transition:background .2s}
+.sw button::after{content:"";position:absolute;top:.15rem;left:.15rem;width:1.3rem;height:1.3rem;border-radius:50%;background:#fff;transition:left .2s}
+.sw button[aria-pressed=true]{background:var(--green)}
+.sw button[aria-pressed=true]::after{left:1.75rem}
+.sw .val{font-family:var(--mono);font-weight:700;min-width:3.4em}
+.lamp{text-align:center;border-radius:14px;padding:.7rem;border:3px solid #b9c4d0;background:#eef1f5;color:#8a96a5;transition:all .3s;margin:.5rem 0}
+.lamp b{display:block;font-size:1.3rem}
+.lamp.on{border-color:var(--gold);background:var(--gold-l);color:var(--navy-d);box-shadow:0 0 0 6px rgba(253,181,21,.25),0 0 28px rgba(253,181,21,.7)}
+table.tt{border-collapse:collapse;margin:.4rem 0;width:100%}
+table.tt th,table.tt td{border:1px solid #b9c4d0;padding:.2rem .5rem;text-align:center;font-family:var(--mono);font-size:.9rem}
+table.tt th{background:var(--navy);color:#fff;font-weight:600}
+table.tt tr.now td{background:var(--hl);font-weight:700}
+table.tt td.T{color:var(--green)} table.tt td.F{color:var(--crimson)}
+
+/* quiz */
+.q{border:1px solid var(--line);border-radius:10px;padding:.6rem .8rem;margin:.5rem 0;background:#fff}
+.q pre{font-family:var(--mono);font-size:.85rem;background:var(--code-bg);border:1px solid var(--line);border-radius:8px;padding:.4rem .6rem;white-space:pre-wrap;margin:.3rem 0}
+.q .opts button{display:block;width:100%;text-align:left;border:1px solid #c5d0dc;background:#f9fbfd;border-radius:8px;padding:.35rem .6rem;margin:.25rem 0;font-size:.95rem}
+.q .opts button.ok{background:var(--green-l);border-color:var(--green)}
+.q .opts button.bad{background:var(--red-l);border-color:var(--crimson)}
+.q .opts button.sel{background:var(--navy);color:#fff;border-color:var(--navy);font-weight:600}
+.q .opts button:disabled{cursor:default}
+.q .opts button.sel.ok{background:var(--green);border-color:var(--green)}
+.q .opts button.sel.bad{background:var(--crimson);border-color:var(--crimson)}
+.q .opts button.sel code,.q .opts button.sel.ok code{background:rgba(255,255,255,.2)}
+.pq .why{font-size:.88rem;background:var(--green-l);border-radius:8px;padding:.3rem .55rem;margin-top:.3rem}
+.pq .why.badw{background:var(--red-l)}
+.scorebig{text-align:center;border:3px solid var(--gold);border-radius:14px;background:linear-gradient(135deg,#fff,var(--gold-l));padding:.6rem;margin-top:.6rem}
+.scorebig b{display:block;font-size:2.6rem;color:var(--navy);line-height:1.1}
+.badge{text-align:center;border:3px solid var(--gold);border-radius:16px;padding:1rem;background:linear-gradient(135deg,#fff,var(--gold-l));margin-bottom:1rem;animation:pop .6s}
+.badge .big{font-size:3rem}
+@keyframes pop{30%{transform:scale(1.06)}}
+.bug{border:1px solid var(--line);border-radius:10px;padding:.6rem .8rem;margin:.5rem 0;background:#fff}
+.bug .fbk{font-size:.9rem;border-radius:8px;padding:.3rem .55rem;margin-top:.3rem}
+.bug .fbk.ok{background:var(--green-l)}.bug .fbk.bad{background:var(--red-l)}
+
+/* ---------- step bar ---------- */
+[data-step]{scroll-margin-top:6rem;transition:opacity .35s,filter .35s,box-shadow .25s}
+body.focus section.block.active [data-step]:not(.spot){opacity:.3;filter:grayscale(.7)}
+body.focus section.block.active [data-step]:not(.spot):hover{opacity:.85;filter:none}
+.spot{box-shadow:0 0 0 3px var(--gold)}
+#stepbar{position:fixed;left:0;right:0;bottom:0;z-index:60;background:var(--navy-d);color:#fff;box-shadow:0 -6px 24px rgba(0,0,0,.25)}
+.sb-row{display:flex;align-items:center;gap:.6rem;padding:.4rem .7rem}
+.sb-row>button{background:var(--gold);color:var(--navy-d);border:0;border-radius:10px;font-size:1.3rem;font-weight:800;width:3rem;height:2.6rem;flex:0 0 auto}
+.sb-row>button:disabled{opacity:.3;cursor:not-allowed}
+.sb-row>button.sb-tool{width:auto;font-size:.85rem;padding:0 .7rem;background:#2c3e5a;color:#fff;border:1px solid #4a6286}
+.sb-row>button.sb-tool.on{background:#fff;color:var(--navy-d)}
+#guide{max-height:0;overflow:hidden;transition:max-height .35s ease;background:#14202f;border-bottom:1px solid #3d5373}
+body.guide-open #guide{max-height:52vh;overflow:auto}
+.g-head{padding:.6rem 1rem 0;font-size:1.05rem}
+.g-head b{color:var(--gold)}
+.g-cols{display:grid;grid-template-columns:1.2fr 1fr 1fr;gap:.7rem;padding:.6rem 1rem .9rem}
+@media (max-width:900px){.g-cols{grid-template-columns:1fr}.sb-chips{display:none}}
+.g-col{border-radius:12px;padding:.55rem .8rem;color:var(--ink)}
+.g-col h4{margin:0 0 .3rem;font-size:.95rem;text-transform:uppercase;letter-spacing:.04em}
+.g-col ul,.g-col ol{margin:0;padding-left:1.2rem}
+.g-col li{margin:.25rem 0;font-size:.95rem}
+.g-col.say{background:#EEF5FA;border-left:6px solid var(--navy)} .g-col.say h4{color:var(--navy)}
+.g-col.do{background:var(--green-l);border-left:6px solid var(--green)} .g-col.do h4{color:var(--green)}
+.g-col.extra{background:var(--gold-l);border-left:6px solid var(--gold)} .g-col.extra h4{color:#7a5600}
+.sb-mid{flex:1;min-width:0}
+.sb-title{font-size:.95rem}
+.sb-title b{color:var(--gold)}
+.sb-chips{display:flex;gap:.3rem;flex-wrap:wrap;margin-top:.2rem}
+.sb-chips button{background:transparent;color:#cfe0f5;border:1px solid #3d5373;border-radius:999px;padding:.05rem .55rem;font-size:.78rem}
+.sb-chips button.done{color:#7ee08f;border-color:#2f6a45}
+.sb-chips button.done::before{content:"✓ "}
+.sb-chips button.on{background:#fff;color:var(--navy-d);border-color:#fff;font-weight:700}
+#admin{position:fixed;right:1rem;bottom:5rem;z-index:70;background:#fff;border:2px solid var(--crimson);border-radius:12px;padding:.7rem;display:flex;flex-direction:column;gap:.3rem;box-shadow:0 8px 30px rgba(0,0,0,.2)}
+@media (prefers-reduced-motion:reduce){*{animation-duration:.01s!important;transition-duration:.01s!important}}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+  <marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0L10,5L0,10z" fill="#7d8da0"/></marker>
+  <marker id="ahHot" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M0,0L10,5L0,10z" fill="#e09a00"/></marker>
+</defs></svg>
+
+<div id="top">
+  <div class="brand">ISD <span>·</span> Level 2 <span>·</span> Selection Structures</div>
+  <nav id="nav"></nav>
+  <div class="tb">
+    <span class="lbl">Code in</span>
+    <span id="langBtns"></span>
+    <button id="fontDn" title="Smaller text">A−</button>
+    <button id="fontUp" title="Bigger text">A+</button>
+  </div>
+</div>
+<div id="progress"><i></i></div>
+
+<main>
+
+<!-- ================================================= PART 1 -->
+<section class="block" data-title="Decisions">
+  <div class="bhead"><span class="chip">Part 1 of 5</span> <span class="chip gold">Scenario</span>
+  <h1>🔀 Programs that make decisions</h1></div>
+  <p class="kicker">You are writing the program for the <b>campus tuck shop till</b>. A till must decide things: <i>Does this customer get a discount? Did they pay enough? Which item did they choose?</i> Every one of those is a <b>selection structure</b>.</p>
+
+  <div class="card" data-step="What is selection?">
+    <h2>Three ways a program can flow</h2>
+    <div class="loop4">
+      <div><b>➡️ Sequence</b>Do the steps one after another, top to bottom.</div>
+      <div class="star"><b>🔀 Selection</b>Ask a question. Choose a path based on the answer. <i>(today)</i></div>
+      <div><b>🔁 Iteration</b>Repeat steps while something is true.</div>
+    </div>
+    <div class="grid2">
+      <div>
+        <div class="analogy"><b class="t">In real life</b>
+        At the taxi rank: <b>IF</b> you have R20 <b>THEN</b> you take the taxi, <b>ELSE</b> you walk. One question, two possible paths, and you only ever take <b>one</b> of them.</div>
+        <p>Every selection structure has two parts:</p>
+        <ol style="margin:.2rem 0;padding-left:1.3rem">
+          <li>A <b>condition</b>: a question whose answer is only ever <b class="T">TRUE</b> or <b class="F">FALSE</b>.</li>
+          <li>The <b>steps to do</b> for each answer.</li>
+        </ol>
+        <div class="key">In a flowchart, a decision is always a <b>diamond</b> with <b>two arrows</b> leaving it: one for True, one for False.</div>
+      </div>
+      <div>
+        <table class="keys">
+          <tr><th>Symbol</th><th>Name</th><th>Used for</th></tr>
+          <tr><td><svg width="64" height="28"><rect x="2" y="3" width="60" height="22" rx="11" fill="#fff" stroke="#005596" stroke-width="2"/></svg></td><td>Terminal</td><td>Start / End</td></tr>
+          <tr><td><svg width="64" height="28"><polygon points="12,3 62,3 52,25 2,25" fill="#fff" stroke="#005596" stroke-width="2"/></svg></td><td>Input / Output</td><td>Read a value, show a result</td></tr>
+          <tr><td><svg width="64" height="28"><rect x="2" y="3" width="60" height="22" fill="#fff" stroke="#005596" stroke-width="2"/></svg></td><td>Process</td><td>Calculate or store a value</td></tr>
+          <tr><td><svg width="64" height="32"><polygon points="32,2 62,16 32,30 2,16" fill="#FFF5D6" stroke="#c47f00" stroke-width="2.5"/></svg></td><td><b>Decision</b></td><td><b>Test a condition</b></td></tr>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="card task" data-step="Condition tester">
+    <h2>Condition tester</h2>
+    <div class="grid2">
+      <div>
+        <p>A condition <b>compares</b> two values with a <b>relational operator</b>. Drag the slider and change the operator. Watch when the answer flips.</p>
+        <div class="cond"><span class="v">total</span> <span id="ctOp">&gt;=</span> 100 <span class="pillTF" id="ctRes">TRUE</span></div>
+        <div class="ops" id="ctOps"></div>
+        <div class="nline" id="ctLine">
+          <div class="track"><div class="zone zl"></div><div class="zone zr"></div></div>
+          <div class="pt"></div>
+          <div class="mk">🛒</div>
+          <span class="tick" style="left:0">0</span><span class="tick" style="left:50%">100</span><span class="tick" style="left:100%">200</span>
+        </div>
+        <p style="text-align:center"><label>total = R<b id="ctVal">120</b> <input type="range" id="ctRange" min="0" max="200" step="5" value="120" style="width:60%;accent-color:#005596" aria-label="total"></label></p>
+        <p class="small" id="ctSay"></p>
+      </div>
+      <div>
+        <table class="keys">
+          <tr><th>Meaning</th><th>Pseudocode</th><th>Python</th><th>C#</th></tr>
+          <tr><td>equal to</td><td><code>=</code></td><td><code>==</code></td><td><code>==</code></td></tr>
+          <tr><td>not equal to</td><td><code>&lt;&gt;</code></td><td><code>!=</code></td><td><code>!=</code></td></tr>
+          <tr><td>greater than</td><td><code>&gt;</code></td><td><code>&gt;</code></td><td><code>&gt;</code></td></tr>
+          <tr><td>less than</td><td><code>&lt;</code></td><td><code>&lt;</code></td><td><code>&lt;</code></td></tr>
+          <tr><td>greater than or equal to</td><td><code>&gt;=</code></td><td><code>&gt;=</code></td><td><code>&gt;=</code></td></tr>
+          <tr><td>less than or equal to</td><td><code>&lt;=</code></td><td><code>&lt;=</code></td><td><code>&lt;=</code></td></tr>
+        </table>
+        <div class="warn">⚠ <b>Watch the boundary.</b> Put the trolley exactly on 100 and switch between <code>&gt;</code> and <code>&gt;=</code>. One tiny <code>=</code> decides whether the customer who spends exactly R100 gets the discount.</div>
+        <div class="key">In Python and C#, <b>one</b> <code>=</code> stores a value and <b>two</b> <code>==</code> compares. Mixing them up is the most common beginner error.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card challenge" data-step="Condition or not?">
+    <h2>Is it a condition?</h2>
+    <p>A condition must give <b>TRUE or FALSE</b>. Which of these could go inside a decision diamond?</p>
+    <div class="grid3" id="sortGame"></div>
+    <p class="small" id="sortScore"></p>
+  </div>
+</section>
+
+<!-- ================================================= PART 2 -->
+<section class="block" data-title="IF &amp; IF-ELSE">
+  <div class="bhead"><span class="chip">Part 2 of 5</span>
+  <h1>↪️ IF and IF-ELSE</h1></div>
+  <p class="kicker">The two most used selection structures. Use <b>IF</b> when something extra happens only sometimes. Use <b>IF-ELSE</b> when there are two different paths.</p>
+
+  <div class="card" data-step="One-way: IF">
+    <h2>One-way selection: IF … THEN</h2>
+    <p><b>Rule at the till:</b> customers who spend <b>R100 or more</b> get <b>R10 off</b>. Everyone else pays the normal total. If the condition is false, the program simply <b>skips</b> the THEN part.</p>
+    <div class="simhost" data-sim="if"></div>
+  </div>
+
+  <div class="card" data-step="Two-way: IF-ELSE">
+    <h2>Two-way selection: IF … THEN … ELSE</h2>
+    <p><b>Rule at the till:</b> if the customer paid enough, work out the <b>change</b>. Otherwise say <b>"Not enough money"</b>. Exactly <b>one</b> of the two branches runs, never both and never neither.</p>
+    <div class="simhost" data-sim="ifelse"></div>
+  </div>
+
+  <div class="card task" data-step="Build it">
+    <h2>Build it: put the lines in order</h2>
+    <div class="grid2">
+      <div>
+        <p>The tuck shop may only sell energy drinks to customers who are <b>16 or older</b>. Use ▲ ▼ to arrange the pseudocode so it prints <code>"Sale allowed"</code> for those customers and <code>"Sale refused"</code> for everyone else.</p>
+        <p><button class="btn green" id="parCheck">Check my order</button> <button class="btn alt" id="parMix">↺ Shuffle</button></p>
+        <div class="reveal-box hidden" id="parDone">✔ <b>Correct!</b> Notice the shape: <code>IF</code> opens the structure, <code>ELSE</code> splits it in two, and <code>ENDIF</code> closes it. The indented lines belong to the branch above them.</div>
+        <p class="small" id="parMsg"></p>
+      </div>
+      <div id="parsons"></div>
+    </div>
+  </div>
+
+  <div class="card challenge" data-step="Trace it">
+    <h2>Trace it</h2>
+    <p>Work out the answer on paper first, then click. You can test your idea in the simulators above.</p>
+    <div class="pq grid2" id="pq2"></div>
+  </div>
+</section>
+
+<!-- ================================================= PART 3 -->
+<section class="block" data-title="ELSE-IF &amp; logic">
+  <div class="bhead"><span class="chip">Part 3 of 5</span>
+  <h1>🪜 More than two paths</h1></div>
+  <p class="kicker">Real rules often have several levels, or two conditions at once. You handle levels with an <b>ELSE-IF ladder</b> and combined conditions with <b>AND, OR, NOT</b>.</p>
+
+  <div class="card" data-step="ELSE-IF ladder">
+    <h2>Multi-way selection: the ELSE-IF ladder</h2>
+    <p><b>Free item promotion:</b> spend R150 or more → <b>combo</b>; R100 or more → <b>drink</b>; R50 or more → <b>sweet</b>; less → nothing. The program tests the conditions <b>from the top</b> and stops at the <b>first one that is true</b>.</p>
+    <div class="simhost" data-sim="ladder"></div>
+    <div class="warn">⚠ <b>Order matters.</b> Always test the <b>strictest</b> condition first (150 before 100 before 50). If you tested <code>total &gt;= 50</code> first, a customer who spent R160 would only get a sweet.</div>
+  </div>
+
+  <div class="card task" data-step="AND, OR, NOT">
+    <h2>Logic lab: AND, OR, NOT</h2>
+    <div class="grid2">
+      <div>
+        <p>Logical operators <b>join conditions</b>. Flip the switches and change the operator. The sign lights up when the whole condition is TRUE.</p>
+        <div class="ops" id="lgOps" style="justify-content:flex-start"></div>
+        <div class="switches">
+          <div class="sw"><button id="lgA" aria-pressed="true" aria-label="isStudent"></button><span>isStudent = <span class="val" id="lgAv"></span></span></div>
+          <div class="sw" id="lgBwrap"><button id="lgB" aria-pressed="false" aria-label="isWednesday"></button><span>isWednesday = <span class="val" id="lgBv"></span></span></div>
+        </div>
+        <div class="panel-t" id="lgLang"></div>
+        <div class="code" id="lgCode"></div>
+        <div class="lamp" id="lgLamp"><b>🎉 SPECIAL PRICE</b><span id="lgLampTxt"></span></div>
+      </div>
+      <div>
+        <p id="lgRule" class="key" style="margin-top:0"></p>
+        <div class="panel-t">Truth table (your row is highlighted)</div>
+        <table class="tt" id="lgTable"></table>
+        <table class="keys">
+          <tr><th>Operator</th><th>TRUE when…</th><th>Python</th><th>C#</th></tr>
+          <tr><td><code>AND</code></td><td><b>both</b> conditions are true</td><td><code>and</code></td><td><code>&amp;&amp;</code></td></tr>
+          <tr><td><code>OR</code></td><td><b>at least one</b> is true</td><td><code>or</code></td><td><code>||</code></td></tr>
+          <tr><td><code>NOT</code></td><td>the condition is <b>false</b> (it flips the answer)</td><td><code>not</code></td><td><code>!</code></td></tr>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="card challenge" data-step="Quick check">
+    <h2>Quick check</h2>
+    <div class="pq grid2" id="pq3"></div>
+  </div>
+</section>
+
+<!-- ================================================= PART 4 -->
+<section class="block" data-title="CASE">
+  <div class="bhead"><span class="chip">Part 4 of 5</span>
+  <h1>🎛️ The CASE structure</h1></div>
+  <p class="kicker">When <b>one variable</b> is compared with a list of <b>exact values</b> (a menu choice, a day number, a grade letter), a CASE structure is neater than a long ELSE-IF ladder.</p>
+
+  <div class="card" data-step="CASE structure">
+    <h2>Pick from the menu</h2>
+    <p>The customer types a menu number. The program finds the <b>matching case</b>, does that one, and skips the rest. If nothing matches, the <b>OTHERWISE</b> (default) case catches it.</p>
+    <div class="simhost" data-sim="case"></div>
+    <div class="key">Always include an <b>OTHERWISE / default</b> case. Users <i>will</i> type something you did not expect.</div>
+  </div>
+
+  <div class="card challenge" data-step="IF or CASE?">
+    <h2>IF or CASE?</h2>
+    <div class="pq grid2" id="pq4"></div>
+  </div>
+</section>
+
+<!-- ================================================= PART 5 -->
+<section class="block" data-title="Bugs &amp; quiz">
+  <div class="bhead"><span class="chip">Part 5 of 5</span>
+  <h1>🐞 Bug clinic &amp; exit quiz</h1></div>
+  <p class="kicker">Selection bugs are sneaky: the program runs, but it takes the <b>wrong path</b>. Find the faulty line, then prove what you know in the quiz.</p>
+
+  <div class="card challenge" data-step="Bug clinic">
+    <h2>Bug clinic: click the faulty line</h2>
+    <div class="grid3" id="bugs"></div>
+  </div>
+
+  <div class="grid2">
+    <div class="card challenge" data-step="Exit quiz: lock in || Show the answers">
+      <h2>Exit quiz</h2>
+      <p>Pick one answer per question. You can change your mind until you press <b>🔒 Lock in</b>.<br>
+      <span class="small">⚠ One attempt only. Once locked, your answers are saved in this browser.</span></p>
+      <div id="quiz"></div>
+      <div id="quizBar" style="margin-top:.6rem"><button class="btn red" id="quizLock" disabled>🔒 Lock in my answers</button> <span class="small" id="quizLeft"></span></div>
+      <div id="quizResult" class="hidden"></div>
+    </div>
+    <div>
+      <div class="badge hidden" id="badge"><div class="big">🔀🏅</div><h2 style="margin:.2rem 0">Certified Decision Maker</h2><p id="badgeTxt"></p></div>
+      <div class="card" data-step="Cheat sheet">
+        <h2>Cheat sheet: which structure?</h2>
+        <table class="keys">
+          <tr><th>Situation</th><th>Use</th></tr>
+          <tr><td>Do something extra <b>only when</b> a condition is true</td><td><code>IF … THEN … ENDIF</code></td></tr>
+          <tr><td>Choose between <b>two</b> paths</td><td><code>IF … THEN … ELSE … ENDIF</code></td></tr>
+          <tr><td>Several <b>ranges</b> or levels (strictest first)</td><td><code>IF … ELSEIF … ELSE … ENDIF</code></td></tr>
+          <tr><td><b>One variable</b>, list of <b>exact values</b></td><td><code>CASE … OF … OTHERWISE … ENDCASE</code></td></tr>
+          <tr><td>Two conditions must <b>both</b> be true</td><td><code>AND</code></td></tr>
+          <tr><td><b>Either</b> condition is enough</td><td><code>OR</code></td></tr>
+        </table>
+        <div class="key"><b>Test like a pro:</b> for every condition, try a value <b>just below</b>, <b>exactly on</b> and <b>just above</b> the boundary (R99, R100, R101).</div>
+        <p class="small"><button class="btn alt" id="resetAll">↺ Start over</button> clears your ticks and practice answers on this device (not the locked exit quiz).</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div id="stepbar">
+  <div id="guide">
+    <div class="g-head" id="gHead"></div>
+    <div class="g-cols">
+      <div class="g-col say"><h4>🎤 Explain</h4><ul id="gSay"></ul></div>
+      <div class="g-col do"><h4>✅ Do this now</h4><ol id="gDo"></ol></div>
+      <div class="g-col extra"><h4>📚 Extra</h4><ul id="gExtra"></ul></div>
+    </div>
+  </div>
+  <div class="sb-row">
+    <button id="prevB" title="Previous step (←)">◀</button>
+    <div class="sb-mid"><div class="sb-title" id="sbTitle"></div><div class="sb-chips" id="sbChips"></div></div>
+    <button class="sb-tool" id="focusBtn" title="Fade everything except the current step">🔦 Focus</button>
+    <button class="sb-tool" id="guideBtn" title="Show the step guide">▲ Guide</button>
+    <button id="nextB" title="Next step (→)">▶</button>
+  </div>
+</div>
+<div id="admin" class="hidden">
+  <b>Lecturer reset (this device only)</b>
+  <button class="btn alt" id="quizReset">Reset exit quiz</button>
+  <button class="btn alt" id="adminClose">Close</button>
+</div>
+</main>
+
+<script>
+/* Step guide: one array per part, one object per step chip. */
+const GUIDE=[
+[
+ {say:["One scenario all lesson: the <b>campus tuck shop till</b>.","Selection = ask a question, choose a path. The question is the <b>condition</b>; its answer is only TRUE or FALSE.","In a flowchart a decision is a <b>diamond</b> with two exits."],
+  do:["Read the taxi rank example.","Find the decision symbol in the table."],
+  extra:["Ask the class for their own everyday IF … THEN … ELSE sentences (robots, load-shedding, airtime)."]},
+ {say:["A condition compares two values with a relational operator.","The <b>boundary value</b> (exactly 100) is where most mistakes happen."],
+  do:["Drag the trolley across 100 with <code>&gt;=</code> selected.","Park it on exactly 100 and switch between <code>&gt;</code> and <code>&gt;=</code>.","Try <code>=</code> and <code>&lt;&gt;</code>."],
+  extra:["The green part of the line is every value that makes the condition TRUE. A filled dot means 100 itself is included.","Switch the language buttons (top right) to see Python or C# everywhere on the page."]},
+ {say:["If it can't be answered TRUE or FALSE, it is not a condition."],
+  do:["Sort all six cards."],
+  extra:["A calculation like <code>paid - total</code> gives a number. It only becomes a condition when you compare it: <code>paid - total &gt;= 0</code>."]},
+],
+[
+ {say:["One-way IF: the THEN part runs only when the condition is TRUE. Otherwise it is skipped.","<b>Predict first</b>, then run. A wrong prediction is the best way to learn."],
+  do:["Choose a total, predict the path, press <b>Step</b> and follow the gold token.","Use the R99 / R100 / R101 buttons to test the boundary."],
+  extra:["Watch the variable table: <code>total</code> only changes on the True path.","The highlighted code line always matches the highlighted flowchart box."]},
+ {say:["IF-ELSE: two branches, and exactly one runs.","After either branch, both paths <b>join again</b> and the program carries on."],
+  do:["Run it once with enough money and once without.","What happens when paid is exactly equal to total?"],
+  extra:["Paid = total gives change of R0: the condition uses <code>&gt;=</code>, so equal counts as enough."]},
+ {say:["IF opens, ELSE splits, ENDIF closes. Indented lines belong to the branch above."],
+  do:["Arrange the eight lines, then press <b>Check my order</b>."],
+  extra:["Green lines are in the right place; red lines must move."]},
+ {say:["Tracing = being the computer: one line at a time, writing down every variable."],
+  do:["Answer all four on paper first, then click."],
+  extra:["Questions 1 and 2 differ by one character. That is the boundary lesson again."]},
+],
+[
+ {say:["A ladder tests conditions from the top and stops at the <b>first TRUE</b>. Everything below is skipped.","Order matters: strictest condition first."],
+  do:["Predict the free item, then step through R160, R120, R60 and R20.","Count how many diamonds are tested each time."],
+  extra:["With R160, only one diamond is tested even though all three conditions are true.","The final ELSE needs no condition: it catches everything left over."]},
+ {say:["AND: both must be true. OR: at least one. NOT: flips the answer."],
+  do:["Find every switch combination that lights the sign with AND, then with OR.","Switch to NOT and watch it flip."],
+  extra:["With AND there is one winning row out of four; with OR there are three."]},
+ {say:["Check understanding before moving on."],
+  do:["Answer all four questions."],
+  extra:["Question 1 is the wrong-order ladder from the warning box."]},
+],
+[
+ {say:["CASE: one variable, a list of exact values, one match.","OTHERWISE / default catches anything unexpected."],
+  do:["Try each menu number, then try 9.","Switch the language to compare <code>CASE</code>, <code>match</code> and <code>switch</code>."],
+  extra:["In C#, every case ends with <code>break;</code> so the program leaves the switch.","Python's <code>match</code> needs Python 3.10 or later; older code uses an if / elif ladder instead."]},
+ {say:["Exact values → CASE. Ranges or combined conditions → IF."],
+  do:["Answer all four questions."],
+  extra:["Any CASE can be rewritten as an ELSE-IF ladder, but not every ladder can be written as a CASE."]},
+],
+[
+ {say:["These programs run without an error message, but give the wrong result: <b>logic errors</b>."],
+  do:["Read the requirement, then click the line that breaks it."],
+  extra:["Bugs: wrong boundary operator, a line outside the ELSE, AND where OR was needed."]},
+ {say:["Eight questions, one attempt, no conferring."],
+  do:["Answer all eight, then lock in."],
+  extra:["Answers: Selection · Diamond · No discount · TRUE or FALSE · FALSE · TRUE · drink · CASE."]},
+ {say:["Go through the most-missed question together."],
+  do:["Press <b>Show me the answers</b> when your lecturer says so."],
+  extra:["Lecturer: Ctrl+Alt+Shift+R opens a reset panel for the exit quiz on this device."]},
+ {say:["Which structure for which situation? Keep this table."],
+  do:["Read the cheat sheet. Copy it into your notes."],
+  extra:["Boundary testing: just below, exactly on, just above."]},
+],
+];
+
+(function(){
+"use strict";
+const PFX="isd-l2-selection-";
+const $=(s,r=document)=>r.querySelector(s), $$=(s,r=document)=>Array.from(r.querySelectorAll(s));
+const store={get(k,d){try{const v=localStorage.getItem(PFX+k);return v===null?d:JSON.parse(v)}catch(e){return d}},
+             set(k,v){try{localStorage.setItem(PFX+k,JSON.stringify(v))}catch(e){}}};
+const esc=s=>String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+const REDUCED=window.matchMedia&&window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+const TF=b=>'<b class="'+(b?"T":"F")+'">'+(b?"TRUE":"FALSE")+"</b>";
+
+/* ---------- navigation: parts + steps ---------- */
+const blocks=$$("section.block");let cur=Math.min(store.get("block",0),blocks.length-1);
+const done=new Set(store.get("done",[]));
+const stepPos=store.get("steps",{});
+const STEPS=blocks.map(b=>{const out=[];$$("[data-step]",b).forEach(el=>el.dataset.step.split("||").forEach(lab=>out.push({el,lab:lab.trim()})));return out});
+function buildNav(){
+  const nav=$("#nav");nav.innerHTML="";
+  blocks.forEach((b,i)=>{const bt=document.createElement("button");
+    bt.textContent=(i+1)+" "+b.dataset.title;bt.onclick=()=>show(i,0);
+    if(i===cur)bt.classList.add("on");if(done.has(i))bt.classList.add("done");nav.appendChild(bt)});
+}
+function paintSteps(scroll){
+  const st=STEPS[cur],k=stepPos[cur]||0;
+  $$(".spot").forEach(e=>e.classList.remove("spot"));
+  $("#sbTitle").innerHTML="Part "+(cur+1)+" of "+blocks.length+" · <b>"+esc(blocks[cur].dataset.title)+"</b> · Step "+(k+1)+" of "+st.length+": "+esc(st[k].lab);
+  const chips=$("#sbChips");chips.innerHTML="";
+  st.forEach((x,i)=>{const c=document.createElement("button");c.textContent=(i+1)+". "+x.lab;
+    if(i<k)c.classList.add("done");if(i===k)c.classList.add("on");c.onclick=()=>setStep(i,true);chips.appendChild(c)});
+  st[k].el.classList.add("spot");
+  const g=(GUIDE[cur]||[])[k]||{say:[],do:[],extra:[]};
+  $("#gHead").innerHTML="Part "+(cur+1)+" · <b>"+esc(blocks[cur].dataset.title)+"</b> · Step "+(k+1)+" of "+st.length+": <b>"+esc(st[k].lab)+"</b>";
+  const fill=(id,arr)=>{$(id).innerHTML=(arr&&arr.length?arr:["<i>–</i>"]).map(x=>"<li>"+x+"</li>").join("")};
+  fill("#gSay",g.say);fill("#gDo",g.do);fill("#gExtra",g.extra);
+  if(scroll)st[k].el.scrollIntoView({behavior:REDUCED?"auto":"smooth",block:"start"});
+  $("#prevB").disabled=cur===0&&k===0;$("#nextB").disabled=cur===blocks.length-1&&k===st.length-1;
+  $("#progress i").style.width=((cur+(k+1)/st.length)/blocks.length*100)+"%";
+}
+function setStep(k,scroll){stepPos[cur]=Math.max(0,Math.min(STEPS[cur].length-1,k));store.set("steps",stepPos);paintSteps(scroll)}
+function show(i,k){cur=Math.max(0,Math.min(blocks.length-1,i));blocks.forEach((b,j)=>b.classList.toggle("active",j===cur));
+  store.set("block",cur);buildNav();window.scrollTo(0,0);
+  if(k!==undefined)stepPos[cur]=k<0?STEPS[cur].length-1:k;setStep(stepPos[cur]||0,k!==undefined&&k!==0)}
+function nextStep(){const k=stepPos[cur]||0;if(k<STEPS[cur].length-1)setStep(k+1,true);else if(cur<blocks.length-1)show(cur+1,0)}
+function prevStep(){const k=stepPos[cur]||0;if(k>0)setStep(k-1,true);else if(cur>0)show(cur-1,-1)}
+function markDone(i){if(done.has(i))return;done.add(i);store.set("done",[...done]);buildNav()}
+$("#prevB").onclick=prevStep;$("#nextB").onclick=nextStep;
+$("#adminClose").onclick=()=>$("#admin").classList.add("hidden");
+function setGuide(on){document.body.classList.toggle("guide-open",on);$("#guideBtn").classList.toggle("on",on);$("#guideBtn").textContent=on?"▼ Guide":"▲ Guide";store.set("guide",on)}
+function setFocus(on){document.body.classList.toggle("focus",on);$("#focusBtn").classList.toggle("on",on);store.set("focus",on)}
+$("#guideBtn").onclick=()=>setGuide(!document.body.classList.contains("guide-open"));
+$("#focusBtn").onclick=()=>setFocus(!document.body.classList.contains("focus"));
+setGuide(store.get("guide",false));setFocus(store.get("focus",false));
+let fs=store.get("fs",17);const setFs=v=>{fs=Math.max(13,Math.min(26,v));document.documentElement.style.fontSize=fs+"px";store.set("fs",fs)};setFs(fs);
+$("#fontUp").onclick=()=>setFs(fs+1);$("#fontDn").onclick=()=>setFs(fs-1);
+document.addEventListener("keydown",e=>{
+  const tag=(e.target.tagName||"").toLowerCase();
+  if(e.ctrlKey&&e.altKey&&e.shiftKey&&(e.key==="R"||e.key==="r")){e.preventDefault();$("#admin").classList.toggle("hidden");return}
+  if(tag==="input"||tag==="textarea"||tag==="select")return;
+  if(e.key==="ArrowRight"){e.preventDefault();nextStep()}
+  if(e.key==="ArrowLeft"){e.preventDefault();prevStep()}
+});
+
+/* ---------- language + code views ---------- */
+const LANGS=[["pseudo","Pseudocode"],["py","Python"],["cs","C#"]];
+const LNAME={pseudo:"Pseudocode",py:"Python",cs:"C#"};
+let lang=store.get("lang","pseudo");if(!LNAME[lang])lang="pseudo";
+const KW={pseudo:"BEGIN END INPUT OUTPUT IF THEN ELSE ELSEIF ENDIF CASE OF OTHERWISE ENDCASE AND OR NOT TRUE FALSE",
+  py:"if elif else and or not print input int True False match case",
+  cs:"if else switch case default break int string bool true false"};
+const KWRE={};Object.keys(KW).forEach(k=>KWRE[k]=new RegExp('("[^"]*")|(\\b\\d+\\b)|(\\b(?:'+KW[k].split(" ").join("|")+')\\b)',"g"));
+function hl(t,lg){const re=KWRE[lg];re.lastIndex=0;let out="",last=0,m;
+  while((m=re.exec(t))){out+=esc(t.slice(last,m.index))+'<span class="'+(m[1]?"s":m[2]?"n":"k")+'">'+esc(m[0])+"</span>";last=re.lastIndex}
+  return out+esc(t.slice(last))}
+const langListeners=[];
+function CodeView(el,src){
+  const v={cur:null,render(){el.innerHTML=src[lang].map((x,i)=>'<div class="ln'+(x[0]&&x[0]===v.cur?" cur":"")+'"><span class="gut">'+(i+1)+'</span><span class="src">'+hl(x[1],lang)+"</span></div>").join("")},
+    set(k){v.cur=k;v.render()}};
+  langListeners.push(v.render);v.render();return v;
+}
+function paintLang(){$$("#langBtns button").forEach(b=>b.classList.toggle("on",b.dataset.l===lang));$$("[data-langname]").forEach(e=>e.textContent="Code · "+LNAME[lang])}
+function setLang(l){lang=l;store.set("lang",l);paintLang();langListeners.forEach(f=>f())}
+$("#langBtns").innerHTML=LANGS.map(([k,n])=>'<button data-l="'+k+'">'+n+"</button>").join(" ");
+$$("#langBtns button").forEach(b=>b.onclick=()=>setLang(b.dataset.l));
+
+/* ---------- flowchart visual ---------- */
+function FlowViz(host,spec){
+  const N=spec.nodes;let gen=0;
+  const shape=n=>{const x=n.x,y=n.y,w=n.w/2,h=n.h/2;
+    if(n.t==="term")return '<rect class="shape" x="'+(x-w)+'" y="'+(y-h)+'" width="'+n.w+'" height="'+n.h+'" rx="'+h+'"/>';
+    if(n.t==="proc")return '<rect class="shape" x="'+(x-w)+'" y="'+(y-h)+'" width="'+n.w+'" height="'+n.h+'"/>';
+    if(n.t==="io")return '<polygon class="shape" points="'+[[x-w+12,y-h],[x+w,y-h],[x+w-12,y+h],[x-w,y+h]].join(" ")+'"/>';
+    return '<polygon class="shape" points="'+[[x,y-h],[x+w,y],[x,y+h],[x-w,y]].join(" ")+'"/>'};
+  let h='<svg class="flow" viewBox="0 0 '+spec.w+" "+spec.h+'" role="img" aria-label="Flowchart of the program">';
+  spec.edges.forEach((e,i)=>{const a=N[e.a],b=N[e.b];const pts=e.pts||[[a.x,a.y+a.h/2],[b.x,b.y-b.h/2]];
+    h+='<path class="edge" data-e="'+e.a+">"+e.b+'" d="M'+pts.map(p=>p.join(",")).join("L")+'"/>';
+    if(e.lab)h+='<text class="elab '+(e.lab==="True"?"t":"f")+'" x="'+e.lx+'" y="'+e.ly+'" text-anchor="'+(e.anchor||"middle")+'">'+e.lab+"</text>"});
+  Object.keys(N).forEach(id=>{const n=N[id];h+='<g class="node '+n.t+'" data-n="'+id+'">'+shape(n)+'<text x="'+n.x+'" y="'+n.y+'">'+esc(n.text)+"</text></g>"});
+  h+='<circle class="tok" r="9" cx="-30" cy="-30"/></svg>';
+  host.innerHTML=h;
+  const tok=$(".tok",host),node=id=>$('[data-n="'+id+'"]',host);
+  function arrive(id){$$(".node.on",host).forEach(n=>{n.classList.remove("on");n.classList.add("seen")});node(id).classList.add("on")}
+  return {
+    reset(){gen++;$$(".node",host).forEach(n=>n.classList.remove("on","seen"));$$(".edge",host).forEach(e=>e.classList.remove("hot"));tok.setAttribute("cx",-30);tok.setAttribute("cy",-30)},
+    go(step,prev){
+      const g=gen;
+      if(!prev||prev.n===step.n){if(!prev){tok.setAttribute("cx",N[step.n].x);tok.setAttribute("cy",N[step.n].y-N[step.n].h/2)}arrive(step.n);return Promise.resolve()}
+      const p=$('[data-e="'+prev.n+">"+step.n+'"]',host);
+      if(!p){arrive(step.n);return Promise.resolve()}
+      p.classList.add("hot");
+      let len=0;try{len=p.getTotalLength()}catch(e){}
+      const dur=REDUCED||!len?0:Math.max(420,len*3.4);
+      return new Promise(res=>{const t0=performance.now();
+        (function f(t){
+          if(g!==gen)return res();
+          const k=dur?Math.min(1,Math.max(0,(t-t0)/dur)):1,e=k<.5?2*k*k:1-Math.pow(-2*k+2,2)/2;
+          if(len){const pt=p.getPointAtLength(len*e);tok.setAttribute("cx",pt.x);tok.setAttribute("cy",pt.y)}
+          if(k<1)requestAnimationFrame(f);else{arrive(step.n);res()}
+        })(t0)});
+    }};
+}
+
+/* ---------- CASE visual ---------- */
+const MENU=[[1,"🥪 Kota",35],[2,"🥧 Pie",25],[3,"🫓 Vetkoek",15],[4,"🧃 Juice",12]];
+function CaseViz(host){
+  let gen=0;
+  host.innerHTML='<div class="casebox"><div class="cval">choice = <b>?</b></div>'+
+    MENU.map(m=>'<div class="crow"><span class="clab">'+m[0]+'</span><span class="cname">'+m[1]+'</span><span class="cprice">price = '+m[2]+'</span><span class="cmark"></span></div>').join("")+
+    '<div class="crow"><span class="clab">?</span><span class="cname">OTHERWISE <span class="small">(anything else)</span></span><span class="cprice">price = 0</span><span class="cmark"></span></div></div>';
+  const rows=$$(".crow",host),val=$(".cval b",host);
+  return {
+    reset(){gen++;rows.forEach(r=>r.className="crow");val.textContent="?"},
+    async go(step){
+      const g=gen;
+      if(step.cval!==undefined)val.textContent=step.cval;
+      if(step.row===undefined)return;
+      const r=rows[step.row];r.classList.add("chk");
+      await sleep(REDUCED?0:480);if(g!==gen)return;
+      r.classList.remove("chk");r.classList.add(step.match?"yes":"no");
+      if(step.match)rows.forEach((x,i)=>{if(i>step.row)x.classList.add("skip")});
+    }};
+}
+
+/* ---------- generic step player ---------- */
+function Player(host,cfg){
+  const vals={};cfg.inputs.forEach(i=>vals[i.id]=i.val);
+  let h='<div class="sim"><div class="bar">';
+  cfg.inputs.forEach(i=>{
+    if(i.type==="pick")h+='<div class="grp"><label>'+i.label+'</label>'+i.opts.map(o=>'<button class="chipbtn" data-pick="'+i.id+'" data-v="'+o+'">'+o+"</button>").join("")+"</div>";
+    else h+='<div class="grp"><label for="'+cfg.id+i.id+'">'+i.label+'</label><input type="range" id="'+cfg.id+i.id+'" data-in="'+i.id+'" min="'+i.min+'" max="'+i.max+'" step="'+i.step+'" value="'+i.val+'"><output data-out="'+i.id+'"></output></div>'});
+  if(cfg.presets)h+='<div class="grp"><span class="small">Try:</span>'+cfg.presets.map((p,k)=>'<button class="chipbtn" data-pre="'+k+'">'+p.label+"</button>").join("")+"</div>";
+  h+='<div class="ctl"><button class="go" data-a="play">▶ Play</button><button data-a="step">⏭ Step</button><button data-a="reset">↺ Reset</button></div></div>';
+  if(cfg.predict)h+='<div class="pred"><b>🔮 Predict first:</b> '+cfg.predict.q+" "+cfg.predict.opts.map((o,k)=>'<button class="chipbtn" data-pred="'+k+'">'+o+"</button>").join("")+'<span class="fb"></span></div>';
+  h+='<div class="body"><div class="viz"></div><div><div class="panel-t" data-langname></div><div class="code"></div>'+
+     '<div class="panel-t">Variables</div><table class="vars"><tbody></tbody></table>'+
+     '<div class="panel-t">Output</div><div class="shell"></div></div></div><div class="status" aria-live="polite"></div></div>';
+  host.innerHTML=h;
+  const viz=cfg.viz($(".viz",host)),code=CodeView($(".code",host),cfg.code),status=$(".status",host),varsEl=$(".vars tbody",host),outEl=$(".shell",host);
+  const bPlay=$('[data-a="play"]',host),bStep=$('[data-a="step"]',host),fb=$(".pred .fb",host);
+  let steps=[],ix=-1,busy=false,playing=false,gen=0,pred=null,lastVars={};
+  function paintInputs(){
+    $$("[data-in]",host).forEach(r=>{r.value=vals[r.dataset.in];$('[data-out="'+r.dataset.in+'"]',host).textContent="R"+vals[r.dataset.in]});
+    $$("[data-pick]",host).forEach(b=>b.classList.toggle("sel",String(vals[b.dataset.pick])===b.dataset.v));
+  }
+  function paintVars(v){
+    const keys=Object.keys(v);
+    varsEl.innerHTML=keys.length?"<tr><th>Name</th><th>Value</th></tr>"+keys.map(k=>'<tr class="'+(lastVars[k]!==v[k]?"chg":"")+'"><td>'+esc(k)+"</td><td>"+esc(typeof v[k]==="string"?'"'+v[k]+'"':v[k])+"</td></tr>").join(""):'<tr><td colspan="2" class="small" style="font-family:inherit;color:#5b6675">(no variables yet)</td></tr>';
+    lastVars={...v};
+  }
+  function buttons(){const end=ix>=steps.length-1;bStep.disabled=end||playing;bPlay.disabled=end;bPlay.textContent=playing?"⏸ Pause":"▶ Play"}
+  function reset(keepPred){
+    gen++;playing=false;busy=false;ix=-1;steps=cfg.run({...vals});viz.reset();code.set(null);lastVars={};paintVars({});outEl.textContent="";
+    status.className="status";status.innerHTML=cfg.predict?"Set the input, make a prediction, then press <b>Step</b> (one move at a time) or <b>Play</b>.":"Choose an input, then press <b>Step</b> (one move at a time) or <b>Play</b>.";
+    if(!keepPred){pred=null;$$("[data-pred]",host).forEach(b=>b.classList.remove("sel"))}
+    if(fb){fb.textContent="";fb.className="fb"}
+    paintInputs();buttons();
+  }
+  async function step(){
+    if(busy||ix>=steps.length-1)return;
+    const g=gen;busy=true;ix++;const s=steps[ix];
+    status.className="status run";
+    await viz.go(s,steps[ix-1]);
+    if(g!==gen)return;
+    code.set(s.l);paintVars(s.vars);if(s.out)outEl.textContent+=(outEl.textContent?"\n":"")+s.out;
+    status.innerHTML=s.say;
+    if(s.reveal&&cfg.predict&&pred!==null&&fb){const ok=pred===cfg.predict.ans(vals);fb.className="fb "+(ok?"ok":"bad");fb.textContent=ok?"✔ Your prediction was right!":"✘ Not what you predicted. Read the yellow box to see why."}
+    if(ix>=steps.length-1){status.className="status end";if(cfg.onEnd)cfg.onEnd()}
+    busy=false;buttons();
+  }
+  async function play(){
+    if(playing){playing=false;buttons();return}
+    const g=gen;playing=true;buttons();
+    while(playing&&g===gen&&ix<steps.length-1){await step();if(g!==gen)return;await sleep(REDUCED?250:650)}
+    if(g===gen){playing=false;buttons()}
+  }
+  host.addEventListener("input",e=>{const r=e.target.closest("[data-in]");if(r){vals[r.dataset.in]=+r.value;reset()}});
+  host.addEventListener("click",e=>{
+    const b=e.target.closest("button");if(!b)return;
+    if(b.dataset.a==="play")play();else if(b.dataset.a==="step")step();else if(b.dataset.a==="reset")reset(true);
+    else if(b.dataset.pick){vals[b.dataset.pick]=+b.dataset.v;reset()}
+    else if(b.dataset.pre){Object.assign(vals,cfg.presets[+b.dataset.pre].vals);reset()}
+    else if(b.dataset.pred){if(ix>=0)reset();pred=+b.dataset.pred;$$("[data-pred]",host).forEach(x=>x.classList.toggle("sel",x===b))}
+  });
+  reset();
+}
+
+/* ---------- the four programs ---------- */
+const SIMS={
+"if":{
+  inputs:[{id:"total",label:"total",min:0,max:200,step:1,val:120}],
+  presets:[{label:"R99",vals:{total:99}},{label:"R100",vals:{total:100}},{label:"R101",vals:{total:101}}],
+  predict:{q:"Which arrow will the token follow out of the diamond?",opts:["True","False"],ans:v=>v.total>=100?0:1},
+  code:{
+    pseudo:[["begin","BEGIN"],["in","   INPUT total"],["if","   IF total >= 100 THEN"],["then","      total = total - 10"],["","   ENDIF"],["out",'   OUTPUT "Pay R", total'],["end","END"]],
+    py:[["in",'total = int(input("Total: "))'],["if","if total >= 100:"],["then","    total = total - 10"],["out",'print("Pay R", total)']],
+    cs:[["in","int total = int.Parse(Console.ReadLine());"],["if","if (total >= 100)"],["","{"],["then","    total = total - 10;"],["","}"],["out",'Console.WriteLine("Pay R" + total);']]},
+  viz:h=>FlowViz(h,{w:420,h:450,
+    nodes:{s:{t:"term",x:210,y:26,w:110,h:34,text:"Start"},in:{t:"io",x:210,y:90,w:170,h:38,text:"INPUT total"},
+      d:{t:"dec",x:210,y:172,w:190,h:76,text:"total >= 100 ?"},p:{t:"proc",x:210,y:264,w:180,h:38,text:"total = total - 10"},
+      out:{t:"io",x:210,y:352,w:210,h:38,text:'OUTPUT "Pay R", total'},e:{t:"term",x:210,y:420,w:110,h:34,text:"End"}},
+    edges:[{a:"s",b:"in"},{a:"in",b:"d"},{a:"d",b:"p",lab:"True",lx:220,ly:228,anchor:"start"},{a:"p",b:"out"},
+      {a:"d",b:"out",pts:[[305,172],[390,172],[390,310],[210,310],[210,333]],lab:"False",lx:348,ly:162},{a:"out",b:"e"}]}),
+  run(v){let total=v.total;const S=[];
+    S.push({n:"s",l:"begin",vars:{},say:"The program starts."});
+    S.push({n:"in",l:"in",vars:{total},say:"The till reads the total: <b>R"+total+"</b>."});
+    const t=total>=100;
+    S.push({n:"d",l:"if",vars:{total},reveal:true,say:"Decision: is "+total+" &gt;= 100? "+TF(t)+". "+(t?"Follow the <b>True</b> arrow and do the THEN part.":"Follow the <b>False</b> arrow. The THEN part is <b>skipped</b>.")});
+    if(t){total-=10;S.push({n:"p",l:"then",vars:{total},say:"Take R10 off. <code>total</code> is now <b>"+total+"</b>."})}
+    S.push({n:"out",l:"out",vars:{total},out:"Pay R"+total,say:"Both paths join here. The till shows what the customer must pay."});
+    S.push({n:"e",l:"end",vars:{total},say:"✔ Done. "+(t?"The discount was applied.":"No discount this time.")+" Change the total and run it again."});
+    return S}},
+"ifelse":{
+  inputs:[{id:"total",label:"total",min:5,max:100,step:5,val:45},{id:"paid",label:"paid",min:0,max:100,step:5,val:50}],
+  presets:[{label:"Paid too little",vals:{total:45,paid:40}},{label:"Paid exactly",vals:{total:45,paid:45}},{label:"Paid more",vals:{total:45,paid:100}}],
+  predict:{q:"Which branch will run?",opts:["True (change)","False (not enough)"],ans:v=>v.paid>=v.total?0:1},
+  code:{
+    pseudo:[["begin","BEGIN"],["in","   INPUT total, paid"],["if","   IF paid >= total THEN"],["calc","      change = paid - total"],["outT",'      OUTPUT "Change: R", change'],["","   ELSE"],["outF",'      OUTPUT "Not enough money"'],["","   ENDIF"],["end","END"]],
+    py:[["in",'total = int(input("Total: "))'],["in",'paid = int(input("Paid: "))'],["if","if paid >= total:"],["calc","    change = paid - total"],["outT",'    print("Change: R", change)'],["","else:"],["outF",'    print("Not enough money")']],
+    cs:[["in","int total = int.Parse(Console.ReadLine());"],["in","int paid = int.Parse(Console.ReadLine());"],["if","if (paid >= total)"],["","{"],["calc","    int change = paid - total;"],["outT",'    Console.WriteLine("Change: R" + change);'],["","}"],["","else"],["","{"],["outF",'    Console.WriteLine("Not enough money");'],["","}"]]},
+  viz:h=>FlowViz(h,{w:420,h:440,
+    nodes:{s:{t:"term",x:210,y:26,w:110,h:34,text:"Start"},in:{t:"io",x:210,y:90,w:190,h:38,text:"INPUT total, paid"},
+      d:{t:"dec",x:210,y:172,w:176,h:76,text:"paid >= total ?"},pt:{t:"proc",x:102,y:262,w:186,h:38,text:"change = paid - total"},
+      ot:{t:"io",x:102,y:330,w:170,h:38,text:"OUTPUT change"},pf:{t:"io",x:320,y:296,w:186,h:38,text:'OUTPUT "Not enough"'},
+      e:{t:"term",x:210,y:408,w:110,h:34,text:"End"}},
+    edges:[{a:"s",b:"in"},{a:"in",b:"d"},
+      {a:"d",b:"pt",pts:[[122,172],[102,172],[102,243]],lab:"True",lx:96,ly:160},{a:"pt",b:"ot"},
+      {a:"d",b:"pf",pts:[[298,172],[320,172],[320,277]],lab:"False",lx:326,ly:160},
+      {a:"ot",b:"e",pts:[[102,349],[102,408],[155,408]]},{a:"pf",b:"e",pts:[[320,315],[320,408],[265,408]]}]}),
+  run(v){const total=v.total,paid=v.paid,S=[];
+    S.push({n:"s",l:"begin",vars:{},say:"The program starts."});
+    S.push({n:"in",l:"in",vars:{total,paid},say:"The till reads the total (<b>R"+total+"</b>) and what the customer paid (<b>R"+paid+"</b>)."});
+    const t=paid>=total;
+    S.push({n:"d",l:"if",vars:{total,paid},reveal:true,say:"Decision: is "+paid+" &gt;= "+total+"? "+TF(t)+". "+(t?"Take the <b>True</b> branch.":"Take the <b>False</b> branch: the ELSE part.")});
+    if(t){const change=paid-total;
+      S.push({n:"pt",l:"calc",vars:{total,paid,change},say:"Work out the change: "+paid+" − "+total+" = <b>"+change+"</b>."});
+      S.push({n:"ot",l:"outT",vars:{total,paid,change},out:"Change: R"+change,say:"Show the change. The ELSE part is <b>skipped</b>."});
+      S.push({n:"e",l:"end",vars:{total,paid,change},say:"✔ Done. Only the True branch ran. Now try paying too little."})}
+    else{S.push({n:"pf",l:"outF",vars:{total,paid},out:"Not enough money",say:"The ELSE part runs. The change calculation was <b>skipped</b>."});
+      S.push({n:"e",l:"end",vars:{total,paid},say:"✔ Done. Only the False branch ran. Now try paying enough."})}
+    return S}},
+"ladder":{
+  inputs:[{id:"total",label:"total",min:0,max:200,step:5,val:120}],
+  presets:[{label:"R160",vals:{total:160}},{label:"R120",vals:{total:120}},{label:"R60",vals:{total:60}},{label:"R20",vals:{total:20}}],
+  predict:{q:"Which free item will this customer get?",opts:["combo","drink","sweet","none"],ans:v=>v.total>=150?0:v.total>=100?1:v.total>=50?2:3},
+  code:{
+    pseudo:[["begin","BEGIN"],["in","   INPUT total"],["d1","   IF total >= 150 THEN"],["a1",'      free = "combo"'],["d2","   ELSEIF total >= 100 THEN"],["a2",'      free = "drink"'],["d3","   ELSEIF total >= 50 THEN"],["a3",'      free = "sweet"'],["","   ELSE"],["a4",'      free = "none"'],["","   ENDIF"],["out",'   OUTPUT "Free item: ", free'],["end","END"]],
+    py:[["in",'total = int(input("Total: "))'],["d1","if total >= 150:"],["a1",'    free = "combo"'],["d2","elif total >= 100:"],["a2",'    free = "drink"'],["d3","elif total >= 50:"],["a3",'    free = "sweet"'],["","else:"],["a4",'    free = "none"'],["out",'print("Free item:", free)']],
+    cs:[["in","int total = int.Parse(Console.ReadLine());"],["","string free;"],["d1","if (total >= 150)"],["a1",'    free = "combo";'],["d2","else if (total >= 100)"],["a2",'    free = "drink";'],["d3","else if (total >= 50)"],["a3",'    free = "sweet";'],["","else"],["a4",'    free = "none";'],["out",'Console.WriteLine("Free item: " + free);']]},
+  viz:h=>{const rail=y=>[[430,y],[452,y],[452,508],[246,508]];return FlowViz(h,{w:470,h:600,
+    nodes:{s:{t:"term",x:150,y:24,w:110,h:32,text:"Start"},in:{t:"io",x:150,y:82,w:170,h:36,text:"INPUT total"},
+      d1:{t:"dec",x:150,y:160,w:180,h:70,text:"total >= 150 ?"},a1:{t:"proc",x:355,y:160,w:150,h:36,text:'free = "combo"'},
+      d2:{t:"dec",x:150,y:252,w:180,h:70,text:"total >= 100 ?"},a2:{t:"proc",x:355,y:252,w:150,h:36,text:'free = "drink"'},
+      d3:{t:"dec",x:150,y:344,w:180,h:70,text:"total >= 50 ?"},a3:{t:"proc",x:355,y:344,w:150,h:36,text:'free = "sweet"'},
+      a4:{t:"proc",x:150,y:432,w:150,h:36,text:'free = "none"'},out:{t:"io",x:150,y:508,w:200,h:36,text:"OUTPUT free"},
+      e:{t:"term",x:150,y:572,w:110,h:32,text:"End"}},
+    edges:[{a:"s",b:"in"},{a:"in",b:"d1"},
+      {a:"d1",b:"a1",pts:[[240,160],[280,160]],lab:"True",lx:259,ly:150},{a:"d1",b:"d2",lab:"False",lx:160,ly:210,anchor:"start"},
+      {a:"d2",b:"a2",pts:[[240,252],[280,252]],lab:"True",lx:259,ly:242},{a:"d2",b:"d3",lab:"False",lx:160,ly:302,anchor:"start"},
+      {a:"d3",b:"a3",pts:[[240,344],[280,344]],lab:"True",lx:259,ly:334},{a:"d3",b:"a4",lab:"False",lx:160,ly:398,anchor:"start"},
+      {a:"a1",b:"out",pts:rail(160)},{a:"a2",b:"out",pts:rail(252)},{a:"a3",b:"out",pts:rail(344)},{a:"a4",b:"out"},{a:"out",b:"e"}]})},
+  run(v){const total=v.total,S=[],lim=[150,100,50],item=["combo","drink","sweet"];let free=null,tested=0;
+    S.push({n:"s",l:"begin",vars:{},say:"The program starts."});
+    S.push({n:"in",l:"in",vars:{total},say:"The till reads the total: <b>R"+total+"</b>."});
+    for(let i=0;i<3&&free===null;i++){const t=total>=lim[i];tested++;
+      S.push({n:"d"+(i+1),l:"d"+(i+1),vars:{total},say:"Test "+(i+1)+": is "+total+" &gt;= "+lim[i]+"? "+TF(t)+". "+(t?"Found the first TRUE condition. Follow the True arrow.":"Move <b>down</b> to the next test.")});
+      if(t){free=item[i];S.push({n:"a"+(i+1),l:"a"+(i+1),vars:{total,free},say:"Store <code>\""+free+"\"</code>. "+(i<2?"All the tests below are <b>skipped</b>, even if they would also be true.":"No tests were left.")})}}
+    if(free===null){free="none";S.push({n:"a4",l:"a4",vars:{total,free},say:"Every test was FALSE, so the final <b>ELSE</b> catches it."})}
+    S.push({n:"out",l:"out",vars:{total,free},out:"Free item: "+free,reveal:true,say:"All paths join here. The till shows the free item."});
+    S.push({n:"e",l:"end",vars:{total,free},say:"✔ Done. The program tested <b>"+tested+"</b> of the 3 conditions. Try another total."});
+    return S}},
+"case":{
+  inputs:[{id:"choice",label:"Customer types:",type:"pick",opts:[1,2,3,4,9],val:3}],
+  code:{
+    pseudo:[["begin","BEGIN"],["in","   INPUT choice"],["sw","   CASE choice OF"],["c0","      1: price = 35"],["c1","      2: price = 25"],["c2","      3: price = 15"],["c3","      4: price = 12"],["c4","      OTHERWISE: price = 0"],["","   ENDCASE"],["out",'   OUTPUT "Price: R", price'],["end","END"]],
+    py:[["in",'choice = int(input("Choice: "))'],["sw","match choice:"],["c0","    case 1:"],["c0","        price = 35"],["c1","    case 2:"],["c1","        price = 25"],["c2","    case 3:"],["c2","        price = 15"],["c3","    case 4:"],["c3","        price = 12"],["c4","    case _:"],["c4","        price = 0"],["out",'print("Price: R", price)']],
+    cs:[["in","int choice = int.Parse(Console.ReadLine());"],["","int price;"],["sw","switch (choice)"],["","{"],["c0","    case 1: price = 35; break;"],["c1","    case 2: price = 25; break;"],["c2","    case 3: price = 15; break;"],["c3","    case 4: price = 12; break;"],["c4","    default: price = 0; break;"],["","}"],["out",'Console.WriteLine("Price: R" + price);']]},
+  viz:h=>CaseViz(h),
+  onEnd(){markDone(3)},
+  run(v){const choice=v.choice,S=[];let price=null;
+    S.push({n:"s",l:"begin",vars:{},say:"The program starts."});
+    S.push({n:"in",l:"in",vars:{choice},cval:choice,say:"The customer types <b>"+choice+"</b>."});
+    S.push({n:"sw",l:"sw",vars:{choice},say:"CASE looks at <b>one variable</b>, <code>choice</code>, and searches for a matching label."});
+    for(let i=0;i<MENU.length&&price===null;i++){const m=MENU[i][0]===choice;
+      if(m)price=MENU[i][2];
+      S.push({n:"c"+i,l:"c"+i,row:i,match:m,vars:m?{choice,price}:{choice},say:"Is choice = "+MENU[i][0]+"? "+TF(m)+". "+(m?"Match! "+MENU[i][1]+" costs R"+price+". The other cases are <b>skipped</b>.":"Not this one.")})}
+    if(price===null){price=0;S.push({n:"c4",l:"c4",row:4,match:true,vars:{choice,price},say:"No label matched, so <b>OTHERWISE</b> runs. The price is set to 0 to show an invalid choice."})}
+    S.push({n:"out",l:"out",vars:{choice,price},out:"Price: R"+price,say:"After the CASE structure, the program carries on with the next line."});
+    S.push({n:"e",l:"end",vars:{choice,price},say:"✔ Done. Exactly <b>one</b> case ran. Try another number (9 is not on the menu)."});
+    return S}}
+};
+$$("[data-sim]").forEach(h=>{const id=h.dataset.sim;Player(h,Object.assign({id:"sim-"+id+"-"},SIMS[id]))});
+
+/* ---------- condition tester ---------- */
+(function(){
+  const OPS=[["=",(a,b)=>a===b,"==","equal to"],["<>",(a,b)=>a!==b,"!=","not equal to"],["<",(a,b)=>a<b,"<","less than"],[">",(a,b)=>a>b,">","greater than"],["<=",(a,b)=>a<=b,"<=","less than or equal to"],[">=",(a,b)=>a>=b,">=","greater than or equal to"]];
+  let op=5,val=120;
+  const host=$("#ctOps");host.innerHTML=OPS.map((o,i)=>'<button data-i="'+i+'">'+esc(o[0])+"</button>").join("");
+  function paint(){
+    const o=OPS[op],r=o[1](val,100),sym=lang==="pseudo"?o[0]:o[2];
+    $$("button",host).forEach((b,i)=>{b.classList.toggle("sel",i===op);b.textContent=lang==="pseudo"?OPS[i][0]:OPS[i][2]});
+    $("#ctOp").textContent=sym;$("#ctVal").textContent=val;
+    const res=$("#ctRes");res.textContent=r?"TRUE":"FALSE";res.className="pillTF "+(r?"T":"F");
+    $("#ctLine .zl").classList.toggle("on",o[1](0,100));$("#ctLine .zr").classList.toggle("on",o[1](200,100));$("#ctLine .pt").classList.toggle("on",o[1](100,100));
+    $("#ctLine .mk").style.left=(val/2)+"%";
+    $("#ctSay").innerHTML="Read it aloud: \"Is "+val+" <b>"+o[3]+"</b> 100?\" → "+TF(r)+". The green part of the line shows every total that gives TRUE.";
+  }
+  $$("button",host).forEach(b=>b.onclick=()=>{op=+b.dataset.i;paint()});
+  $("#ctRange").addEventListener("input",e=>{val=+e.target.value;paint()});
+  langListeners.push(paint);paint();
+})();
+
+/* ---------- sort game ---------- */
+(function(){
+  const items=[
+    ["age >= 18",true,"It compares two values, so the answer is TRUE or FALSE."],
+    ["paid - total",false,"This is a calculation. It gives a number, not TRUE or FALSE."],
+    ["choice <> 4",true,"\"Is choice not equal to 4?\" can only be TRUE or FALSE."],
+    ['OUTPUT "Enjoy your meal"',false,"This is an instruction (an output step). It belongs in a parallelogram, not a diamond."],
+    ["stock < 1",true,"\"Is stock less than 1?\" is a yes/no question."],
+    ['"Vetkoek"',false,"This is just a piece of text. Nothing is being compared."]];
+  const ans=store.get("sort",{}),host=$("#sortGame");
+  function paint(){
+    host.innerHTML=items.map((it,i)=>{const a=ans[i],has=a!==undefined,ok=has&&a===it[1];
+      return '<div class="sortcard '+(has?(ok?"ok":"bad"):"")+'"><pre>'+hl(it[0],"pseudo")+'</pre><button data-i="'+i+'" data-v="1" class="'+(a===true?"sel":"")+'">Condition</button><button data-i="'+i+'" data-v="0" class="'+(a===false?"sel":"")+'">Not a condition</button>'+
+        (has?'<div class="why">'+(ok?"✔ ":"✘ Try again. ")+(ok?it[2]:"Ask yourself: can the answer only be TRUE or FALSE?")+"</div>":"")+"</div>"}).join("");
+    const right=items.filter((it,i)=>ans[i]===it[1]).length;
+    $("#sortScore").textContent=right+" of "+items.length+" sorted correctly.";
+    if(right===items.length)markDone(0);
+  }
+  host.addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;ans[+b.dataset.i]=b.dataset.v==="1";store.set("sort",ans);paint()});
+  paint();
+})();
+
+/* ---------- parsons ---------- */
+(function(){
+  const LINES=["BEGIN","   INPUT age","   IF age >= 16 THEN",'      OUTPUT "Sale allowed"',"   ELSE",'      OUTPUT "Sale refused"',"   ENDIF","END"];
+  const MIX=[4,1,7,3,0,6,2,5];
+  let order=store.get("parsons",MIX.slice()),checked=false;
+  if(!Array.isArray(order)||order.length!==LINES.length)order=MIX.slice();
+  const host=$("#parsons");
+  function paint(){
+    host.innerHTML=order.map((li,pos)=>'<div class="pline '+(checked?(li===pos?"ok":"bad"):"")+'"><button data-p="'+pos+'" data-d="-1" aria-label="Move up"'+(pos===0?" disabled":"")+'>▲</button><button data-p="'+pos+'" data-d="1" aria-label="Move down"'+(pos===order.length-1?" disabled":"")+'>▼</button><pre>'+hl(LINES[li],"pseudo")+"</pre></div>").join("");
+    const all=order.every((li,pos)=>li===pos);
+    $("#parDone").classList.toggle("hidden",!(checked&&all));
+    $("#parMsg").textContent=checked&&!all?order.filter((li,pos)=>li===pos).length+" of "+LINES.length+" lines are in the right place. Move the red ones.":"";
+  }
+  host.addEventListener("click",e=>{const b=e.target.closest("button");if(!b||b.disabled)return;const p=+b.dataset.p,q=p+ +b.dataset.d;
+    [order[p],order[q]]=[order[q],order[p]];checked=false;store.set("parsons",order);paint()});
+  $("#parCheck").onclick=()=>{checked=true;paint()};
+  $("#parMix").onclick=()=>{order=MIX.slice();checked=false;store.set("parsons",order);paint()};
+  paint();
+})();
+
+/* ---------- logic lab ---------- */
+(function(){
+  const OPS=["AND","OR","NOT"];let op=0,A=true,B=false;
+  const RULE=["<b>AND rule:</b> the special is only for <b>students</b>, and only on <b>Wednesdays</b>. Both must be true.",
+              "<b>OR rule:</b> the special is for <b>all students</b>, and for <b>everyone on Wednesdays</b>. One is enough.",
+              "<b>NOT rule:</b> the special is for people who are <b>not</b> students (staff and visitors). NOT flips TRUE to FALSE and FALSE to TRUE."];
+  const EXPR={pseudo:["isStudent AND isWednesday","isStudent OR isWednesday","NOT isStudent"],
+              py:["is_student and is_wednesday","is_student or is_wednesday","not is_student"],
+              cs:["isStudent && isWednesday","isStudent || isWednesday","!isStudent"]};
+  const WRAP={pseudo:e=>["IF "+e+" THEN",'   OUTPUT "Special price"',"ENDIF"],py:e=>["if "+e+":",'    print("Special price")'],cs:e=>["if ("+e+")","{",'    Console.WriteLine("Special price");',"}"]};
+  const f=(a,b)=>op===0?a&&b:op===1?a||b:!a;
+  $("#lgOps").innerHTML=OPS.map((o,i)=>'<button data-i="'+i+'">'+o+"</button>").join("");
+  function paint(){
+    const r=f(A,B),t=b=>b?"TRUE":"FALSE";
+    $$("#lgOps button").forEach((b,i)=>b.classList.toggle("sel",i===op));
+    $("#lgA").setAttribute("aria-pressed",A);$("#lgB").setAttribute("aria-pressed",B);
+    $("#lgAv").innerHTML=TF(A);$("#lgBv").innerHTML=TF(B);
+    $("#lgBwrap").classList.toggle("hidden",op===2);
+    $("#lgLang").textContent="Code · "+LNAME[lang];
+    $("#lgCode").innerHTML=WRAP[lang](EXPR[lang][op]).map((l,i)=>'<div class="ln"><span class="gut">'+(i+1)+'</span><span class="src">'+hl(l,lang)+"</span></div>").join("");
+    $("#lgLamp").classList.toggle("on",r);
+    $("#lgLampTxt").innerHTML=(op===2?"NOT "+t(A):t(A)+" "+OPS[op]+" "+t(B))+" → <b>"+t(r)+"</b>";
+    $("#lgRule").innerHTML=RULE[op];
+    const cell=b=>'<td class="'+(b?"T":"F")+'">'+t(b)+"</td>";
+    let h=op===2?"<tr><th>isStudent</th><th>NOT isStudent</th></tr>":"<tr><th>isStudent</th><th>isWednesday</th><th>"+OPS[op]+"</th></tr>";
+    if(op===2)[false,true].forEach(a=>h+='<tr class="'+(a===A?"now":"")+'">'+cell(a)+cell(!a)+"</tr>");
+    else[[false,false],[false,true],[true,false],[true,true]].forEach(([a,b])=>h+='<tr class="'+(a===A&&b===B?"now":"")+'">'+cell(a)+cell(b)+cell(f(a,b))+"</tr>");
+    $("#lgTable").innerHTML=h;
+  }
+  $$("#lgOps button").forEach(b=>b.onclick=()=>{op=+b.dataset.i;paint()});
+  $("#lgA").onclick=()=>{A=!A;paint()};$("#lgB").onclick=()=>{B=!B;paint()};
+  langListeners.push(paint);paint();
+})();
+
+/* ---------- practice questions (not locked) ---------- */
+function practice(host,key,qs,onAll){
+  const got=new Set(store.get("pq-"+key,[]));
+  qs.forEach((q,qi)=>{const d=document.createElement("div");d.className="q";
+    d.innerHTML="<b>"+(qi+1)+".</b> "+q.q+(q.pre?"<pre>"+hl(q.pre,"pseudo")+"</pre>":"")+'<div class="opts">'+q.o.map((o,i)=>'<button data-i="'+i+'">'+o+"</button>").join("")+'</div><div class="why hidden"></div>';
+    $$("button",d).forEach(b=>b.onclick=()=>{const i=+b.dataset.i,ok=i===q.a;
+      $$("button",d).forEach(x=>{x.classList.remove("ok","bad");if(+x.dataset.i===i)x.classList.add(ok?"ok":"bad")});
+      const w=$(".why",d);w.classList.remove("hidden");w.classList.toggle("badw",!ok);w.innerHTML=ok?"✔ "+q.why:"✘ Not quite. "+(q.hint||"Trace it one line at a time and try again.");
+      if(ok){got.add(qi);store.set("pq-"+key,[...got]);if(got.size===qs.length&&onAll)onAll()}});
+    host.appendChild(d)});
+  if(got.size===qs.length&&onAll)onAll();
+}
+practice($("#pq2"),"2",[
+  {q:"<code>total</code> is <b>100</b>. What is printed?",pre:"IF total >= 100 THEN\n   total = total - 10\nENDIF\nOUTPUT total",o:["90","100","110"],a:0,why:"100 &gt;= 100 is TRUE because \"or equal to\" includes 100. So R10 comes off.",hint:"Does <code>&gt;=</code> include the value 100 itself?"},
+  {q:"Same value, <b>100</b>, but look closely at the operator. What is printed?",pre:"IF total > 100 THEN\n   total = total - 10\nENDIF\nOUTPUT total",o:["90","100","Nothing is printed"],a:1,why:"100 &gt; 100 is FALSE, so the THEN part is skipped. The OUTPUT is after ENDIF, so it always runs.",hint:"Is 100 greater than 100? And is the OUTPUT inside or outside the IF?"},
+  {q:"<code>paid</code> is <b>50</b> and <code>total</code> is <b>65</b>. What is printed?",pre:"IF paid >= total THEN\n   OUTPUT \"Thank you\"\nELSE\n   OUTPUT \"Not enough money\"\nENDIF",o:["Thank you","Not enough money","Both messages"],a:1,why:"50 &gt;= 65 is FALSE, so only the ELSE branch runs.",hint:"Is 50 greater than or equal to 65?"},
+  {q:"In an IF-ELSE structure, how many of the two branches run each time?",o:["Both","Exactly one","Sometimes none"],a:1,why:"The condition is either TRUE or FALSE, so exactly one branch runs every time."},
+],()=>markDone(1));
+practice($("#pq3"),"3",[
+  {q:"A learner wrote the ladder in this order. <code>total</code> is <b>160</b>. What is the free item?",pre:"IF total >= 50 THEN\n   free = \"sweet\"\nELSEIF total >= 100 THEN\n   free = \"drink\"\nELSEIF total >= 150 THEN\n   free = \"combo\"\nENDIF",o:["combo","drink","sweet"],a:2,why:"160 &gt;= 50 is already TRUE at the first test, so the ladder stops there. Test the strictest condition first.",hint:"A ladder stops at the FIRST true condition. Which one is that here?"},
+  {q:"<code>age</code> is <b>70</b>. What is the result of this condition?",pre:"age < 13 OR age > 65",o:["TRUE","FALSE"],a:0,why:"FALSE OR TRUE gives TRUE. With OR, one true part is enough.",hint:"Work out each side separately, then join with OR."},
+  {q:"<code>age</code> is <b>20</b>. What is the result of this condition?",pre:"age >= 13 AND age <= 19",o:["TRUE","FALSE"],a:1,why:"TRUE AND FALSE gives FALSE. With AND, both parts must be true.",hint:"20 &gt;= 13 is true. What about 20 &lt;= 19?"},
+  {q:"<code>stock</code> is <b>0</b>. What is the result of this condition?",pre:"NOT (stock > 0)",o:["TRUE","FALSE"],a:0,why:"0 &gt; 0 is FALSE, and NOT flips it to TRUE. (It means \"out of stock\".)",hint:"First work out the part in brackets, then flip it."},
+],()=>markDone(2));
+practice($("#pq4"),"4",[
+  {q:"Print the <b>name of a day</b> from a day number 1 to 7. Which structure fits best?",o:["One-way IF","IF-ELSE","CASE"],a:2,why:"One variable, seven exact values: a perfect CASE.",hint:"How many exact values can the day number have?"},
+  {q:"Give free delivery when the order is <b>R200 or more</b>. Which structure fits best?",o:["One-way IF","CASE","ELSE-IF ladder"],a:0,why:"One condition with a range (&gt;= 200) and nothing special to do otherwise: a simple IF.",hint:"Is \"R200 or more\" an exact value or a range?"},
+  {q:"In the tuck shop menu program, the customer types <b>7</b>. What happens?",o:["The program crashes","The OTHERWISE case runs","Case 4 runs because it is the closest"],a:1,why:"No label matches 7, so the OTHERWISE (default) case runs.",hint:"Try it in the simulator above with 9."},
+  {q:"Why is CASE a poor choice for <code>total &gt;= 100</code>?",o:["CASE can only use text","CASE matches exact values, not ranges","CASE is slower than IF"],a:1,why:"You would need a separate label for 100, 101, 102 … An IF handles the whole range in one condition."},
+],()=>markDone(3));
+
+/* ---------- bug clinic ---------- */
+(function(){
+  const BUGS=[
+    {req:"Customers who spend <b>R100 or more</b> get R10 off. A customer who spent exactly R100 complained: no discount!",
+     lines:["INPUT total","IF total > 100 THEN","   total = total - 10","ENDIF","OUTPUT total"],bug:1,
+     fix:"<code>&gt;</code> leaves out exactly 100. It must be <code>IF total &gt;= 100 THEN</code>. Always test the boundary value."},
+    {req:"Print <b>\"Thank you\"</b> if the customer paid enough, otherwise <b>\"Not enough money\"</b>. But customers who pay enough see <b>both</b> messages.",
+     lines:["INPUT total, paid","IF paid >= total THEN",'   OUTPUT "Thank you"',"ENDIF",'OUTPUT "Not enough money"'],bug:4,
+     fix:"That line is <b>outside</b> the IF, so it always runs. It belongs in an <code>ELSE</code> branch before <code>ENDIF</code>."},
+    {req:"Children <b>under 13</b> and pensioners <b>over 65</b> get a free juice. Nobody ever gets one.",
+     lines:["INPUT age","IF age < 13 AND age > 65 THEN",'   OUTPUT "Free juice"',"ENDIF"],bug:1,
+     fix:"Nobody can be under 13 <b>and</b> over 65 at the same time, so the condition is always FALSE. It must be <code>OR</code>."}];
+  const solved=new Set(store.get("bugs",[]));
+  $("#bugs").innerHTML=BUGS.map((b,bi)=>'<div class="bug" data-b="'+bi+'"><p><b>Bug '+(bi+1)+".</b> "+b.req+'</p><div class="code">'+
+    b.lines.map((l,i)=>'<div class="ln pick" data-i="'+i+'"><span class="gut">'+(i+1)+'</span><span class="src">'+hl(l,"pseudo")+"</span></div>").join("")+'</div><div class="fbk hidden"></div></div>').join("");
+  function mark(el,bi){const b=BUGS[bi];$$(".ln",el).forEach(l=>l.classList.remove("wrong"));$('.ln[data-i="'+b.bug+'"]',el).classList.add("right");
+    const f=$(".fbk",el);f.className="fbk ok";f.innerHTML="✔ Found it. "+b.fix}
+  $$(".bug").forEach(el=>{const bi=+el.dataset.b;if(solved.has(bi))mark(el,bi);
+    el.addEventListener("click",e=>{const l=e.target.closest(".ln");if(!l||solved.has(bi))return;
+      if(+l.dataset.i===BUGS[bi].bug){solved.add(bi);store.set("bugs",[...solved]);mark(el,bi)}
+      else{$$(".ln",el).forEach(x=>x.classList.remove("wrong"));l.classList.add("wrong");const f=$(".fbk",el);f.className="fbk bad";f.textContent="✘ That line is fine. Read the complaint again: which line causes it?"}})});
+})();
+
+/* ---------- exit quiz (one attempt, lock in) ---------- */
+(function(){
+  const qs=[
+    ["Which control structure lets a program <b>choose between paths</b>?",null,["Sequence","Selection","Iteration"],1],
+    ["Which flowchart symbol shows a <b>decision</b>?",null,["Rectangle","Parallelogram","Diamond"],2],
+    ["<code>total</code> is <b>100</b>. What is printed?","IF total > 100 THEN\n   OUTPUT \"Discount\"\nELSE\n   OUTPUT \"No discount\"\nENDIF",["Discount","No discount","Nothing"],1],
+    ["A condition always gives…",null,["a number","TRUE or FALSE","a piece of text"],1],
+    ["<code>isStudent</code> is TRUE and <code>isWednesday</code> is FALSE. What is the result?","isStudent AND isWednesday",["TRUE","FALSE"],1],
+    ["Same values: <code>isStudent</code> is TRUE and <code>isWednesday</code> is FALSE. What is the result?","isStudent OR isWednesday",["TRUE","FALSE"],0],
+    ["<code>total</code> is <b>120</b>. What is printed?","IF total >= 150 THEN\n   OUTPUT \"combo\"\nELSEIF total >= 100 THEN\n   OUTPUT \"drink\"\nELSEIF total >= 50 THEN\n   OUTPUT \"sweet\"\nENDIF",["drink","drink and sweet","sweet"],0],
+    ["A menu has options 1 to 4 stored in <b>one variable</b>. Which structure is the neatest?",null,["One-way IF","CASE","IF-ELSE"],1]];
+  const K=k=>"challenge-quiz-"+k,N=qs.length;
+  let picks=store.get(K("picks"),{}),lock=store.get(K("lock"),null);if(lock)picks=lock.picks;
+  let armed=0;const btn=$("#quizLock"),host=$("#quiz");
+  const els=qs.map(([q,pre,opts],qi)=>{const d=document.createElement("div");d.className="q";
+    d.innerHTML="<b>"+(qi+1)+".</b> "+q+(pre?"<pre>"+hl(pre,"pseudo")+"</pre>":"")+'<div class="opts">'+opts.map((o,i)=>'<button data-i="'+i+'">'+esc(o)+"</button>").join("")+"</div>";
+    $$("button",d).forEach(b=>b.onclick=()=>{if(lock)return;picks[qi]=+b.dataset.i;store.set(K("picks"),picks);paint()});host.appendChild(d);return d});
+  btn.onclick=()=>{
+    if(lock||Object.keys(picks).length<N)return;
+    if(Date.now()>armed){armed=Date.now()+4000;btn.textContent="Sure? Click again to lock – no changes after this";return}
+    const score=qs.filter((q,i)=>picks[i]===q[3]).length;
+    lock={picks:{...picks},score,at:new Date().toTimeString().slice(0,5)};store.set(K("lock"),lock);markDone(4);paint()};
+  function paint(){
+    const shown=!!lock&&store.get(K("shown"),false);
+    els.forEach((d,qi)=>$$("button",d).forEach(b=>{const i=+b.dataset.i;b.classList.toggle("sel",picks[qi]===i);b.disabled=!!lock;
+      b.classList.toggle("ok",shown&&i===qs[qi][3]);b.classList.toggle("bad",shown&&picks[qi]===i&&i!==qs[qi][3])}));
+    const left=N-Object.keys(picks).length;
+    if(!lock){btn.disabled=left>0;if(Date.now()>armed)btn.textContent="🔒 Lock in my answers";
+      $("#quizLeft").textContent=left?left+" still to answer":"All answered – lock in when you're sure!";return}
+    $("#quizBar").classList.add("hidden");const r=$("#quizResult");r.classList.remove("hidden");const s=lock.score;
+    r.innerHTML='<div class="scorebig">Your locked-in score<b>'+s+" / "+N+"</b>"+(s===N?"🏆 Perfect: Chief Decision Maker!":s>=6?"🥈 Sharp!":s>=4?"🔀 Good effort!":"🐞 Revisit Parts 2 and 3!")+
+      '<div class="small">Locked at '+lock.at+"</div></div>"+
+      (shown?"":'<p style="text-align:center"><button class="btn" data-show="1">Show me the answers</button><br><span class="small">Wait for your lecturer – no spoilers for your neighbours!</span></p>');
+    const sb=$("[data-show]",r);if(sb)sb.onclick=()=>{store.set(K("shown"),true);paint()};
+    if(shown){$("#badge").classList.remove("hidden");$("#badgeTxt").textContent=s+" / "+N+" on the exit quiz · "+done.size+" of "+blocks.length+" parts completed."}
+  }
+  $("#quizReset").onclick=()=>{["picks","lock","shown"].forEach(k=>{try{localStorage.removeItem(PFX+K(k))}catch(e){}});location.reload()};
+  paint();
+})();
+
+$("#resetAll").onclick=()=>{try{Object.keys(localStorage).filter(k=>k.startsWith(PFX)&&!k.includes("challenge-")).forEach(k=>localStorage.removeItem(k))}catch(e){}location.reload()};
+paintLang();
+show(cur);
+})();
+</script>
+</body>
+</html>
